@@ -1,0 +1,43 @@
+name: Build Pose Landmarker APK
+
+# 触发条件：当你 push 代码到任何分支，或者手动触发时运行
+on:
+  push:
+    paths:
+      - 'examples/pose_landmarker/android/**' # 当这个目录有代码变动时优先触发（可选）
+  workflow_dispatch: # 允许你在 Actions 页面手动点击运行
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    # 全局设置工作目录，相当于给所有 run 步骤自动 cd 到这个目录
+    defaults:
+      run:
+        working-directory: examples/pose_landmarker/android
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      # 上传构建产物 (APK)
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pose-landmarker-debug-apk
+          # 注意：上传产物的路径是基于仓库根目录的，所以要写全路径
+          path: examples/pose_landmarker/android/app/build/outputs/apk/debug/*.apk
